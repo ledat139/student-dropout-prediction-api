@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Dự đoán sinh viên quay lại năm 2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 300px;
+      padding: 5px;
+      margin-top: 5px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 1.2em;
+      color: green;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Dự đoán sinh viên có quay lại năm 2 không hay đã bỏ học</h1>
+  <form id="predictForm">
+    <label>Điểm kết hợp từ các kỳ thi đầu vào:
+      <input type="text" step="any" name="STDNT_TEST_ENTRANCE_COMB" placeholder="1010" required>
+    </label>
+    <label>Nhu cầu tài chính chưa được đáp ứng (tính bằng số tiền):
+      <input type="text" step="any" name="UNMET_NEED" placeholder="476580" required>
+    </label>
+    <label>Điểm trung bình GPA của sinh viên thời trung học:
+      <input type="text" step="any" name="HIGH_SCHL_GPA" placeholder="3.5"  required>
+    </label>
+    <label>Số phần trăm tín chỉ sinh viên đã hoàn thành trên số tín chỉ đã đăng kí trong kì 1:
+      <input type="text" step="any" name="FIRST_TERM_Hr" placeholder="1"  required>
+    </label>
+    <label>Số phần trăm tín chỉ sinh viên đã hoàn thành trên số tín chỉ đã đăng kí trong kì 2:
+      <input type="text" step="any" name="SECOND_TERM_Hr" placeholder="0.5"  required>
+    </label>
+    <label>Chi phí tổng cộng để sinh viên theo học tại trường:
+      <input type="text" step="any" name="COST_OF_ATTEND" placeholder="1324500"  required>
+    </label>
+    <label>Khoảng cách từ nhà của sinh viên đến trường(km)
+      <input type="text" step="any" name="DISTANCE_FROM_HOME" placeholder="661"  required>
+    </label>
+    <label>Đóng góp tài chính ước tính của gia đình sinh viên:
+      <input type="text" step="any" name="EST_FAM_CONTRIBUTION" placeholder="241500"  required>
+    </label>
+    <label>Tổng nhu cầu tài chính của sinh viên:
+      <input type="text" step="any" name="GROSS_FIN_NEED" placeholder="1083000"  required>
+    </label>
+
+    <button type="submit">Dự đoán</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('predictForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        jsonData[key] = parseFloat(value);
+      });
+
+      const response = await fetch('/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData)
+      });
+
+      if (!response.ok) {
+        document.getElementById('result').innerHTML = `<span style="color:red">Lỗi: Không thể gọi API</span>`;
+        return;
+      }
+
+      const result = await response.json();
+      document.getElementById('result').innerHTML = `
+        <strong>Dự đoán:</strong> ${result.prediction} <br>
+        <strong>Ý nghĩa:</strong> ${result.meaning}
+      `;
+    });
+  </script>
+</body>
+
+</html>

@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import joblib
 import pandas as pd
@@ -7,6 +10,20 @@ model = joblib.load("./model.pkl")
 label_encoders = joblib.load("./label_encoders.pkl")
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def get_home():
+    return FileResponse("static/index.html")
 
 class StudentData(BaseModel):
     STDNT_TEST_ENTRANCE_COMB: float
@@ -34,5 +51,5 @@ def predict(data: StudentData):
     prediction = model.predict(input_df)[0]
     return {
         "prediction": int(prediction),
-        "meaning": "Quay lại năm 2" if prediction == 1 else "Không quay lại"
+        "meaning": "Có quay lại năm 2" if prediction == 1 else "Không quay lại, đã bỏ học"
     }
